@@ -8,7 +8,7 @@
 - Эмбарго: выпуск с `publish_at` в будущем **не собирается** и не попадает на сайт. Workflow `.github/workflows/pages.yml` пересобирает сайт при push и по расписанию в 09:01 МСК, так что заранее закоммиченный номер появляется ровно к выходу. Сгенерированный HTML в репозитории можно не коммитить — Actions собирает его сам.
 
 ## Печатная версия
-`build.py` для каждого опубликованного номера делает `issues/<date>/print.html` и A4‑PDF `issues/<date>/solaris-times-<date>.pdf` (Playwright/Chromium, print CSS — `assets/print.css`, ссылки превращаются в сноски). PDF генерируется **в GitHub Actions** при каждой сборке (шаг ставит playwright+chromium), поэтому коммитить его не нужно; `*.pdf` в `.gitignore`. Номер с будущим `publish_at` не собирается вовсе — ни HTML, ни PDF. Локально: `pip install playwright && python3 -m playwright install chromium`; `--no-pdf` пропускает PDF.
+`build.py` для каждого опубликованного номера делает `issues/<date>/print.html` и A4‑PDF `issues/<date>/solaris-times-<date>.pdf` (Playwright/Chromium, print CSS — `assets/print.css`, без источников: ссылки становятся обычным текстом, строки «Источник…» (`.src`) скрыты; подписи и лицензии фото сохраняются). PDF генерируется **в GitHub Actions** при каждой сборке (шаг ставит playwright+chromium), поэтому коммитить его не нужно; `*.pdf` в `.gitignore`. Номер с будущим `publish_at` не собирается вовсе — ни HTML, ни PDF. Локально: `pip install playwright && python3 -m playwright install chromium`; `--no-pdf` пропускает PDF.
 
 ## Процедура ежедневного выпуска
 1. `git pull`. Проверить, что `content/<дата>.json` ещё нет (`ls content/`; и `issues.json` на сайте). Если есть — не дублировать, только править.

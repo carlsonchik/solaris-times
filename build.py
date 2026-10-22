@@ -47,21 +47,15 @@ def issue_html(it, prev, nxt, depth):
 
 import re
 def print_html(it):
-    notes = []
-    def fn(m):
-        href, text = m.group(1), m.group(2)
-        notes.append(href); return f'{text}<sup>{len(notes)}</sup>'
     body = it["body"].replace("{{ROOT}}", "../../")
-    body = re.sub(r'<a href="([^"]+)">(.*?)</a>', fn, body, flags=re.S)
-    short = lambda u: re.sub(r'^https?://(www\d*\.)?', '', u)
-    fns = "".join(f'<li>{html.escape(short(u))}</li>' for u in notes)
+    body = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', body, flags=re.S)  # print: links -> plain text, no sources
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Solaris Times № {it["number"]} — печать</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap&subset=cyrillic" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/print.css"></head><body>
 <header class="pm"><div class="orbit">✦ ежедневная газета для одного читателя ✦</div><h1>Solaris Times</h1>
 <div class="pd"><span>№ {it["number"]}</span><span>{ru_date(it["date"])}</span><span>{it["read_time"]}</span></div></header>
 <p class="lede">{it["lede"]}</p><div class="paper">{body}</div>
-<section class="fns"><h4>Источники</h4><ol>{fns}</ol></section></body></html>"""
+</body></html>"""
 
 def make_pdf(d, date):
     try:
