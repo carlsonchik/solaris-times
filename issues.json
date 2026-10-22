@@ -1,0 +1,59 @@
+[
+  {
+    "date": "2026-10-22",
+    "number": 1,
+    "headline": "Тысяча агентов разобрали мозг мыши за 32 минуты",
+    "publish_at": "2026-10-22T09:00:00+03:00",
+    "items": [
+      {
+        "rubric": "Главное",
+        "title": "Тысячи агентов GPT-Rosalind разобрали CRISPR-атлас мозга мыши",
+        "source": "https://openai.com/index/scaling-ai-research-for-complex-biological-data/",
+        "event_date": "2026-10-21"
+      },
+      {
+        "rubric": "Большой материал",
+        "title": "Карта островка (insula): как мозг создаёт ощущения тела",
+        "source": "https://doi.org/10.1038/s41586-026-11175-2",
+        "event_date": "2026-10-21"
+      },
+      {
+        "rubric": "Статья дня с arXiv",
+        "title": "More Memory, Worse Agents (arXiv:2610.27406)",
+        "source": "https://arxiv.org/abs/2610.27406",
+        "event_date": "2026-10-19"
+      },
+      {
+        "rubric": "Наука",
+        "title": "RFD4-Proteina — открытая модель дизайна белков (IPD + NVIDIA)",
+        "source": "https://newsroom.uw.edu/news-releases/researchers-achieve-major-advance-in-protein-design",
+        "event_date": "2026-10-21"
+      },
+      {
+        "rubric": "Хорошие новости",
+        "title": "Кабельные бактерии синтезируют проводящий MOF",
+        "source": "https://doi.org/10.1038/s41467-026-76989-0",
+        "event_date": "2026-10-22"
+      },
+      {
+        "rubric": "ИИ-инструмент дня",
+        "title": "IBM Granite Speech 5.0",
+        "source": "https://huggingface.co/ibm-granite/granite-speech-5.0-2b",
+        "event_date": "2026-10-20"
+      },
+      {
+        "rubric": "Идея дня",
+        "title": "Ницше: активное забвение",
+        "source": "https://plato.stanford.edu/entries/nietzsche/",
+        "event_date": "1874"
+      },
+      {
+        "rubric": "Что почитать и посмотреть",
+        "title": "Ply (Диас); Engines of Reason (Чайковски); Клара и Солнце (Вайтити)",
+        "source": "https://locusmag.com/review/ply-by-hernan-diaz-review-by-niall-harrison/",
+        "event_date": "2026-10"
+      }
+    ],
+    "url": "issues/2026-10-22/"
+  }
+]

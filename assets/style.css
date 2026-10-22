@@ -1,0 +1,35 @@
+:root{--bg:#0d0f12;--paper:#14171c;--ink:#e7e3da;--mute:#9a968d;--line:#2a2e35;--acc:#7fd1c7;--warm:#e0b872}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.65 "Source Serif 4",Georgia,serif}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid rgba(127,209,199,.3)}a:hover{border-color:var(--acc)}
+.mast{max-width:1100px;margin:0 auto;padding:28px 20px 10px;text-align:center;border-bottom:3px double var(--line)}
+.brand{font:800 clamp(44px,9vw,96px)/1 "Playfair Display",serif;letter-spacing:-.02em;color:var(--ink);border:0;
+ background:linear-gradient(180deg,#f3efe6 30%,#7fd1c7 140%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.top{margin-top:10px;font:600 13px Inter,sans-serif;text-transform:uppercase;letter-spacing:.14em}.top a{border:0;color:var(--mute);margin:0 12px}
+main{max-width:1100px;margin:0 auto;padding:0 20px}
+.dateline{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);padding:10px 0;border-bottom:1px solid var(--line)}
+.lede{font-style:italic;color:var(--mute);text-align:center;max-width:760px;margin:18px auto}
+.pager{display:flex;justify-content:space-between;font:13px Inter,sans-serif;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:14px 0}
+.pager a{border:0}
+.kicker{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:.16em;color:var(--warm);margin:0 0 6px}
+h1,h2,h3{font-family:"Playfair Display",serif;line-height:1.15;margin:.2em 0 .4em}
+.lead h2{font-size:clamp(32px,5vw,52px)}.feature h2{font-size:clamp(28px,4vw,40px)}h3{font-size:24px}
+.lead{display:grid;grid-template-columns:1.25fr 1fr;gap:36px;padding:26px 0;border-bottom:1px solid var(--line)}
+.lead .text{column-count:1}
+figure{margin:0 0 16px}figure img{width:100%;height:auto;display:block;border-radius:2px;background:#e9e5dc}
+figure.dark img{background:transparent}
+figcaption{font:13px/1.45 Inter,sans-serif;color:var(--mute);margin-top:6px}figcaption .cr{display:block;opacity:.75}
+.feature{padding:26px 0;border-bottom:1px solid var(--line)}.feature .cols{column-width:320px;column-gap:36px}
+.feature .cols p:first-child::first-letter,.lead .text h2 + p::first-letter{font:800 3.2em/0.8 "Playfair Display",serif;float:left;margin:6px 8px 0 0;color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 36px;padding:10px 0}
+.note{padding:20px 0;border-bottom:1px solid var(--line)}
+.rubric{background:var(--paper);border:1px solid var(--line);padding:22px 24px;margin:26px 0}
+.op{border-left:3px solid var(--warm);padding:4px 0 4px 14px;margin:14px 0;color:#d8d2c4}
+.op::before{content:"Мнение редакции. ";font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--warm)}
+.src{font:13px/1.6 Inter,sans-serif;color:var(--mute)}.src a{color:var(--mute)}
+.facts{font:15px/1.55 Inter,sans-serif;margin:10px 0;padding-left:18px}
+.archive ul{list-style:none;padding:0}.archive li a{display:grid;grid-template-columns:70px 260px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);color:var(--ink)}
+.archive .n{color:var(--acc)}.archive .d{color:var(--mute);font:14px Inter,sans-serif}
+.foot{max-width:1100px;margin:40px auto 0;padding:20px;border-top:3px double var(--line);font:13px Inter,sans-serif;color:var(--mute);text-align:center}
+@media(max-width:760px){.rubric figure{float:none!important;margin:0 auto 12px!important}body{font-size:17px}.lead{grid-template-columns:1fr;gap:12px}.grid{grid-template-columns:1fr}
+ .top a{margin:0 8px}.archive li a{grid-template-columns:52px 1fr}.archive .t{grid-column:1/-1}.rubric{padding:16px}.pager{font-size:12px}}
