@@ -33,7 +33,7 @@ def page(title, body, depth, desc=""):
 <nav class="top"><a href="{p}">Свежий номер</a><a href="{p}archive/">Архив</a></nav></header>
 {body}
 <footer class="foot"><p>Solaris Times — личная утренняя газета. Факты со ссылками на первоисточники; редакционные выводы помечены «Мнение редакции».</p>
-<p><a href="{p}archive/">Архив</a> · <a href="{p}issues.json">issues.json</a></p></footer></body></html>"""
+<p><a href="{p}archive/">Архив</a></p></footer></body></html>"""
 
 def issue_html(it, prev, nxt, depth):
     p = "../" * depth

@@ -48,10 +48,34 @@
         "event_date": "1874"
       },
       {
-        "rubric": "Что почитать и посмотреть",
-        "title": "Ply (Диас); Engines of Reason (Чайковски); Клара и Солнце (Вайтити)",
-        "source": "https://locusmag.com/review/ply-by-hernan-diaz-review-by-niall-harrison/",
-        "event_date": "2026-10"
+        "rubric": "Цифра дня",
+        "title": "100–400 аттосекунд: рекордные жёсткие рентгеновские импульсы LCLS",
+        "source": "https://www6.slac.stanford.edu/news/2026-10-20-slacs-x-ray-laser-sets-record-shortest-high-energy-pulses-ever-generated-xfel",
+        "event_date": "2026-10-20"
+      },
+      {
+        "rubric": "Наука в России",
+        "title": "ИХБФМ СО РАН: механизм «всеядности» эндонуклеазы VIII",
+        "source": "https://www.rscf.ru/news/biology/obnaruzheny-novye-svoystva-fermenta-sposobnogo-razrezat-molekuly-dnk/",
+        "event_date": "2026-10-21"
+      },
+      {
+        "rubric": "Хорошие новости из России",
+        "title": "Два котёнка ирбиса в Саяно-Шушенском заповеднике, всего 21 барс",
+        "source": "http://nature.kremlin.ru/news/563",
+        "event_date": "2026-10-06"
+      },
+      {
+        "rubric": "Кадр дня",
+        "title": "Кратер Спайдер, Landsat 9",
+        "source": "https://science.nasa.gov/earth/earth-observatory/an-impact-structure-with-legs/",
+        "event_date": "2026-10-13"
+      },
+      {
+        "rubric": "Мысленный эксперимент",
+        "title": "Дневник, который пишет сам себя",
+        "source": "",
+        "event_date": "2026-10-22"
       }
     ],
     "url": "issues/2026-10-22/"
