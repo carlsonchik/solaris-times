@@ -32,4 +32,4 @@ figcaption{font:13px/1.45 Inter,sans-serif;color:var(--mute);margin-top:6px}figc
 .archive .n{color:var(--acc)}.archive .d{color:var(--mute);font:14px Inter,sans-serif}
 .foot{max-width:1100px;margin:40px auto 0;padding:20px;border-top:3px double var(--line);font:13px Inter,sans-serif;color:var(--mute);text-align:center}
 @media(max-width:760px){.rubric figure{float:none!important;margin:0 auto 12px!important}body{font-size:17px}.lead{grid-template-columns:1fr;gap:12px}.grid{grid-template-columns:1fr}
- .top a{margin:0 8px}.archive li a{grid-template-columns:52px 1fr}.archive .t{grid-column:1/-1}.rubric{padding:16px}.pager{font-size:12px}}
+ .top a{margin:0 7px;letter-spacing:.1em}.top{font-size:12px}.archive li a{grid-template-columns:52px 1fr}.archive .t{grid-column:1/-1}.rubric{padding:16px}.pager{font-size:12px}}

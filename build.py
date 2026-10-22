@@ -21,7 +21,7 @@ def load(now):
     out.sort(key=lambda i: i["date"])
     return out
 
-def page(title, body, depth, desc=""):
+def page(title, body, depth, desc="", extra_nav=""):
     p = "../" * depth
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -30,20 +30,20 @@ def page(title, body, depth, desc=""):
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;600&display=swap&subset=cyrillic" rel="stylesheet">
 <link rel="stylesheet" href="{p}assets/style.css"></head><body>
 <header class="mast"><a class="brand" href="{p}">Solaris Times</a>
-<nav class="top"><a href="{p}">Свежий номер</a><a href="{p}archive/">Архив</a></nav></header>
+<nav class="top"><a href="{p or "./"}">Свежий номер</a><a href="{p}archive/">Архив</a>{extra_nav}</nav></header>
 {body}
 <footer class="foot"><p>Solaris Times — личная утренняя газета. Факты со ссылками на первоисточники; редакционные выводы помечены «Мнение редакции».</p>
 <p><a href="{p}archive/">Архив</a></p></footer></body></html>"""
 
 def issue_html(it, prev, nxt, depth):
     p = "../" * depth
-    pdf = f'<a href="{p}issues/{it["date"]}/solaris-times-{it["date"]}.pdf">печатная версия</a>' 
+    pdf = f'<a href="{p}issues/{it["date"]}/solaris-times-{it["date"]}.pdf">Печатная версия</a>' 
     nav = '<nav class="pager">' + (f'<a href="{p}issues/{prev["date"]}/">← № {prev["number"]} · {prev["date"]}</a>' if prev else '<span></span>') \
-        + f'<span><a href="{p}archive/">все выпуски</a> · {pdf}</span>' + (f'<a href="{p}issues/{nxt["date"]}/">№ {nxt["number"]} · {nxt["date"]} →</a>' if nxt else '<span></span>') + '</nav>'
+         + (f'<a href="{p}issues/{nxt["date"]}/">№ {nxt["number"]} · {nxt["date"]} →</a>' if nxt else '<span></span>') + '</nav>'
     head = f'''<div class="dateline"><span>№ {it["number"]}</span><span>{ru_date(it["date"])}</span><span>{it["read_time"]}</span></div>
 <p class="lede">{it["lede"]}</p>'''
     body = it["body"].replace("{{ROOT}}", p)
-    return page(f'Solaris Times № {it["number"]} — {it["date"]}', f'<main class="issue">{head}{nav}{body}{nav}</main>', depth, it["lede"])
+    return page(f'Solaris Times № {it["number"]} — {it["date"]}', f'<main class="issue">{head}{nav}{body}{nav}</main>', depth, it["lede"], pdf)
 
 import re
 def print_html(it):
