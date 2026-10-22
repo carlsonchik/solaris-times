@@ -37,12 +37,45 @@ def page(title, body, depth, desc=""):
 
 def issue_html(it, prev, nxt, depth):
     p = "../" * depth
+    pdf = f'<a href="{p}issues/{it["date"]}/solaris-times-{it["date"]}.pdf">печатная версия</a>' 
     nav = '<nav class="pager">' + (f'<a href="{p}issues/{prev["date"]}/">← № {prev["number"]} · {prev["date"]}</a>' if prev else '<span></span>') \
-        + f'<a href="{p}archive/">все выпуски</a>' + (f'<a href="{p}issues/{nxt["date"]}/">№ {nxt["number"]} · {nxt["date"]} →</a>' if nxt else '<span></span>') + '</nav>'
+        + f'<span><a href="{p}archive/">все выпуски</a> · {pdf}</span>' + (f'<a href="{p}issues/{nxt["date"]}/">№ {nxt["number"]} · {nxt["date"]} →</a>' if nxt else '<span></span>') + '</nav>'
     head = f'''<div class="dateline"><span>№ {it["number"]}</span><span>{ru_date(it["date"])}</span><span>{it["read_time"]}</span></div>
 <p class="lede">{it["lede"]}</p>'''
     body = it["body"].replace("{{ROOT}}", p)
     return page(f'Solaris Times № {it["number"]} — {it["date"]}', f'<main class="issue">{head}{nav}{body}{nav}</main>', depth, it["lede"])
+
+import re
+def print_html(it):
+    notes = []
+    def fn(m):
+        href, text = m.group(1), m.group(2)
+        notes.append(href); return f'{text}<sup>{len(notes)}</sup>'
+    body = it["body"].replace("{{ROOT}}", "../../")
+    body = re.sub(r'<a href="([^"]+)">(.*?)</a>', fn, body, flags=re.S)
+    short = lambda u: re.sub(r'^https?://(www\d*\.)?', '', u)
+    fns = "".join(f'<li>{html.escape(short(u))}</li>' for u in notes)
+    return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Solaris Times № {it["number"]} — печать</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/print.css"></head><body>
+<header class="pm"><div class="orbit">✦ ежедневная газета для одного читателя ✦</div><h1>Solaris Times</h1>
+<div class="pd"><span>№ {it["number"]}</span><span>{ru_date(it["date"])}</span><span>{it["read_time"]}</span></div></header>
+<p class="lede">{it["lede"]}</p><div class="paper">{body}</div>
+<section class="fns"><h4>Источники</h4><ol>{fns}</ol></section></body></html>"""
+
+def make_pdf(d, date):
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("WARN: playwright not installed, PDF skipped for", date); return
+    out = os.path.join(d, f"solaris-times-{date}.pdf")
+    with sync_playwright() as p:
+        b = p.chromium.launch(); pg = b.new_page()
+        pg.goto("file://" + os.path.join(d, "print.html"), wait_until="networkidle")
+        pg.pdf(path=out, format="A4", print_background=True, margin={"top":"14mm","bottom":"16mm","left":"13mm","right":"13mm"},
+               display_header_footer=True, header_template="<span></span>",
+               footer_template='<div style="font:8px serif;width:100%;text-align:center;color:#555">Solaris Times · <span class="pageNumber"></span>/<span class="totalPages"></span></div>')
+        b.close()
 
 def main():
     now = dt.datetime.now(dt.timezone.utc)
@@ -54,6 +87,8 @@ def main():
         nxt = issues[i+1] if i+1 < len(issues) else None
         d = os.path.join(ROOT, "issues", it["date"]); os.makedirs(d, exist_ok=True)
         open(os.path.join(d, "index.html"), "w", encoding="utf-8").write(issue_html(it, prev, nxt, 2))
+        open(os.path.join(d, "print.html"), "w", encoding="utf-8").write(print_html(it))
+        if "--no-pdf" not in sys.argv: make_pdf(d, it["date"])
     if issues:
         latest = issues[-1]
         open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(

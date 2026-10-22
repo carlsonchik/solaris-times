@@ -1,0 +1,23 @@
+@page{size:A4}
+body{margin:0;background:#fff;color:#111;font:9.6pt/1.42 "Source Serif 4",Georgia,serif}
+a{color:#111;text-decoration:none}
+.pm{text-align:center;border-bottom:3px double #111;padding-bottom:4pt}
+.pm h1{font:800 46pt/1 "Playfair Display",serif;margin:2pt 0;letter-spacing:-.01em}
+.orbit{font:600 7pt sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#2a6f68}
+.pd{display:flex;justify-content:space-between;font:600 7.5pt sans-serif;text-transform:uppercase;letter-spacing:.12em;border-top:1px solid #111;padding-top:3pt;margin-top:4pt}
+.lede{font-style:italic;text-align:center;margin:6pt 30pt 8pt;color:#333}
+.paper{column-count:3;column-gap:14pt;column-rule:.5pt solid #bbb}
+article,section{break-inside:auto}
+.lead,.feature,.grid,.note,.rubric{display:block;margin:0 0 8pt;padding:0;border:0;background:none}
+.rubric{border-top:1.2pt solid #111;padding-top:4pt}
+h2,h3{font-family:"Playfair Display",serif;line-height:1.1;margin:2pt 0 4pt;break-after:avoid}
+.lead h2{font-size:20pt}.feature h2{font-size:15pt}h3{font-size:12pt}
+.kicker{font:700 6.8pt sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#2a6f68;margin:4pt 0 1pt}
+p{margin:0 0 4pt;text-align:justify;hyphens:auto}
+figure{margin:0 0 5pt;break-inside:avoid;float:none!important;max-width:none!important}figure img{width:100%;filter:grayscale(1) contrast(1.05)}
+figcaption{font:7pt/1.3 sans-serif;color:#444}figcaption .cr{display:block;color:#777}
+.op{border-left:1.5pt solid #2a6f68;padding-left:5pt;font-style:italic}.op::before{content:"Мнение редакции. ";font:700 6.5pt sans-serif;text-transform:uppercase;font-style:normal}
+.src{font:7pt sans-serif;color:#555}.facts{padding-left:12pt;margin:3pt 0}
+sup{font-size:6pt;color:#2a6f68}
+.fns{column-count:2;font:6.8pt/1.35 sans-serif;color:#333;border-top:1px solid #111;margin-top:8pt;word-break:break-all}.fns h4{margin:3pt 0;column-span:all}
+.fns ol{margin:0;padding-left:16pt}
