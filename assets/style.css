@@ -33,3 +33,9 @@ figcaption{font:13px/1.45 Inter,sans-serif;color:var(--mute);margin-top:6px}figc
 .foot{max-width:1100px;margin:40px auto 0;padding:20px;border-top:3px double var(--line);font:13px Inter,sans-serif;color:var(--mute);text-align:center}
 @media(max-width:760px){.rubric figure{float:none!important;margin:0 auto 12px!important}body{font-size:17px}.lead{grid-template-columns:1fr;gap:12px}.grid{grid-template-columns:1fr}
  .top a{margin:0 7px;letter-spacing:.1em}.top{font-size:12px}.archive li a{grid-template-columns:52px 1fr}.archive .t{grid-column:1/-1}.rubric{padding:16px}.pager{font-size:12px}}
+/* weekly issues */
+.contents{max-width:760px;margin:10px auto 18px;font:15px/1.5 Inter,sans-serif;color:var(--mute)}
+.contents summary{cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--warm)}
+.toc{list-style:none;padding:0;margin:8px 0;columns:2 280px;column-gap:30px}.toc li{break-inside:avoid;padding:2px 0}
+.toc .tp{font:800 18px "Playfair Display",serif;color:var(--ink);margin-top:8px}.toc .tr{font-style:italic}
+.part{padding-top:10px}.part::before{content:attr(data-part);display:block;font:800 clamp(30px,5vw,46px)/1 "Playfair Display",serif;color:var(--acc);border-bottom:3px double var(--line);padding:24px 0 10px;margin-bottom:6px}

@@ -1,7 +1,7 @@
 name: Build & deploy Solaris Times
 on:
   push: { branches: [main] }
-  schedule: [{ cron: "1 6 * * *" }]   # 09:01 Europe/Moscow — снимает эмбарго с подготовленного номера
+  schedule: [{ cron: "1 18 * * 0" }]   # воскресенье 21:01 Europe/Moscow (18:01 UTC) — снимает эмбарго с еженедельного номера
   workflow_dispatch:
 permissions: { contents: read, pages: write, id-token: write }
 concurrency: { group: pages, cancel-in-progress: true }

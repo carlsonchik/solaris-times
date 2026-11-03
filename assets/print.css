@@ -22,3 +22,18 @@ sup{font-size:6pt;color:#2a6f68}
 .fns{column-count:2;font:6.8pt/1.35 sans-serif;color:#333;border-top:1px solid #111;margin-top:8pt;word-break:break-all}.fns h4{margin:3pt 0;column-span:all}
 .fns ol{margin:0;padding-left:16pt}
 .src{display:none}
+/* weekly issues: cover with contents, each part on a new page */
+.weekly .cover-toc{border:1.2pt solid #111;padding:8pt 12pt;margin:6pt 0 8pt;font:8.6pt/1.4 sans-serif}
+.weekly .cover-toc h4{font:700 7pt sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#2a6f68;margin:0 0 4pt}
+.toc{list-style:none;margin:0;padding:0;column-count:2;column-gap:18pt}.toc li{break-inside:avoid;padding:1pt 0}
+.toc .tp{font:800 13pt "Playfair Display",serif;margin-top:5pt;border-bottom:.6pt solid #111}.toc .tr{font-style:italic;color:#333}
+.weekly .paper{column-count:auto;columns:auto;column-rule:none}
+.weekly .lead,.weekly .rubric,.weekly .grid{column-count:2;column-gap:14pt;column-rule:.5pt solid #bbb}
+.weekly .feature{break-before:page;column-count:2;column-gap:14pt;column-rule:.5pt solid #bbb}
+.weekly .feature .kicker,.weekly .feature h2,.weekly .lead .kicker,.weekly .lead h2{column-span:all}
+.weekly .lead h2{font-size:26pt}.weekly .feature h2{font-size:20pt}
+.weekly .part{break-before:page;display:block}
+.weekly .part::before{break-after:avoid}
+.weekly .part::before{content:attr(data-part);display:block;font:800 30pt/1 "Playfair Display",serif;border-bottom:3px double #111;padding-bottom:4pt;margin-bottom:8pt;color:#111}
+.weekly .part > .feature:first-child,.weekly .part > .feature:first-of-type{break-before:auto}
+.weekly .rubric h3,.weekly .rubric .kicker{column-span:all}
