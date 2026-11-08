@@ -15,6 +15,8 @@ h2,h3{font-family:"Playfair Display",serif;line-height:1.1;margin:2pt 0 4pt;brea
 .kicker{font:700 6.8pt sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#2a6f68;margin:4pt 0 1pt}
 p{margin:0 0 4pt;text-align:justify;hyphens:auto}
 figure{margin:0 0 5pt;break-inside:avoid;float:none!important;max-width:none!important}figure img{width:100%;filter:grayscale(1) contrast(1.05)}
+/* Inline float/margin from the site must not indent a print column. */
+.weekly figure{margin:0 0 5pt!important}
 figcaption{font:7pt/1.3 sans-serif;color:#444}figcaption .cr{display:block;color:#777}
 .op{border-left:1.5pt solid #2a6f68;padding-left:5pt;font-style:italic}.op::before{content:"Мнение редакции. ";font:700 6.5pt sans-serif;text-transform:uppercase;font-style:normal}
 .src{font:7pt sans-serif;color:#555}.facts{padding-left:12pt;margin:3pt 0}
@@ -37,3 +39,6 @@ sup{font-size:6pt;color:#2a6f68}
 .weekly .part::before{content:attr(data-part);display:block;font:800 30pt/1 "Playfair Display",serif;border-bottom:3px double #111;padding-bottom:4pt;margin-bottom:8pt;color:#111}
 .weekly .part > .feature:first-child,.weekly .part > .feature:first-of-type{break-before:auto}
 .weekly .rubric h3,.weekly .rubric .kicker{column-span:all}
+/* Landscape openers span the measure. build.py marks them figure.wide;
+   a narrower photo is moved under the heading so the other column is text. */
+.weekly figure.wide{column-span:all}

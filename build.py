@@ -3,7 +3,7 @@
 Source of truth: content/YYYY-MM-DD.json (one per issue).
 Builds: issues/<date>/index.html, index.html (latest published), archive/index.html, issues.json.
 Issues whose publish_at (ISO, with offset) is in the future are NOT built (embargo)."""
-import json, glob, os, re, sys, html, datetime as dt
+import json, glob, os, re, sys, html, struct, datetime as dt
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MONTHS = "января февраля марта апреля мая июня июля августа сентября октября ноября декабря".split()
 WD = "понедельник вторник среда четверг пятница суббота воскресенье".split()
@@ -84,10 +84,91 @@ def issue_html(it, prev, nxt, depth):
     body = it["body"].replace("{{ROOT}}", p)
     return page(f'Solaris Times № {it["number"]} — {when(it) if is_weekly(it) else it["date"]}', f'<main class="issue">{head}{nav}{body}{nav}</main>', depth, it["lede"], pdf)
 
+# A photo this wide (4:3) or wider spans the full measure in the weekly PDF.
+# Narrower photos stay one column wide so the story can run beside them.
+WIDE_FIGURE = 4 / 3
+_PRINT_BLOCK = re.compile(
+    r'<(article|section)\b[^>]*\bclass="(?:lead|feature|rubric)"[^>]*>.*?</\1>', re.S)
+
+def _image_aspect(src):
+    """Width/height of a raster in assets/img, or None if it cannot be read."""
+    name = os.path.basename(src.split("?", 1)[0])
+    path = os.path.join(ROOT, "assets", "img", name)
+    try:
+        data = open(path, "rb").read()
+    except OSError:
+        return None
+    if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+        w, h = struct.unpack(">II", data[16:24])
+        return (w / h) if h else None
+    if data[:2] != b"\xff\xd8":
+        return None
+    i, n = 2, len(data)
+    while i + 8 < n:
+        if data[i] != 0xFF:
+            i += 1
+            continue
+        while i < n and data[i] == 0xFF:
+            i += 1
+        if i >= n:
+            break
+        marker = data[i]
+        i += 1
+        if marker in (0xD8, 0xD9) or marker == 0x01 or 0xD0 <= marker <= 0xD7:
+            continue
+        if i + 2 > n:
+            break
+        seglen = struct.unpack(">H", data[i:i + 2])[0]
+        if marker in (0xC0, 0xC1, 0xC2) and i + 7 <= n:
+            h, w = struct.unpack(">HH", data[i + 3:i + 7])
+            return (w / h) if h else None
+        if seglen < 2:
+            break
+        i += seglen
+    return None
+
+def _add_class(fig, cls):
+    if re.match(r'<figure\b[^>]*\bclass="', fig):
+        return re.sub(r'\bclass="', f'class="{cls} ', fig, count=1)
+    return re.sub(r'<figure\b', f'<figure class="{cls}"', fig, count=1)
+
+def _place_in_block(block):
+    """Close the blank column beside an opening figure.
+
+    A heading with column-span:all ends the column band above it. A figure
+    that is the only box in that band sits in column one and leaves column
+    two empty. A wide photo spans the band instead. Any other photo moves
+    to just after the heading, into the same band as the body, which is how
+    the feature stories already set type beside a picture.
+    """
+    fm = re.search(r'<figure\b[^>]*>.*?</figure>', block, re.S)
+    if not fm:
+        return block
+    fig = fm.group(0)
+    srcm = re.search(r'\bsrc="([^"]+)"', fig)
+    aspect = _image_aspect(srcm.group(1)) if srcm else None
+    if aspect is not None and aspect >= WIDE_FIGURE:
+        return block[:fm.start()] + _add_class(fig, "wide") + block[fm.end():]
+    hm = re.search(r'<h[23]\b[^>]*>.*?</h[23]>', block, re.S)
+    if not hm or fm.start() > hm.start():
+        return block
+    original = block
+    end = fm.end() + (1 if fm.end() < len(block) and block[fm.end()] == "\n" else 0)
+    block = block[:fm.start()] + block[end:]
+    hm = re.search(r'<h[23]\b[^>]*>.*?</h[23]>', block, re.S)
+    if not hm:
+        return original
+    return block[:hm.end()] + "\n" + fig + block[hm.end():]
+
+def place_print_figures(body):
+    return _PRINT_BLOCK.sub(lambda m: _place_in_block(m.group(0)), body)
+
 def print_html(it):
     body = it["body"].replace("{{ROOT}}", "../../")
     body = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', body, flags=re.S)  # print: links -> plain text, no sources
     weekly = is_weekly(it)
+    if weekly:
+        body = place_print_figures(body)
     orbit = "еженедельная газета для одного читателя" if weekly else "ежедневная газета для одного читателя"
     cover = ""
     if weekly:
