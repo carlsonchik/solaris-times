@@ -15,18 +15,15 @@
     "id": "st14-history-week",
     "kicker": "Эта неделя в истории",
     "title": "2–8 ноября",
-    "html": "<p>Неделя 2–8 ноября любит открытия, которые сначала кажутся случайностью.</p><ul><li><strong>2 ноября 1936.</strong> BBC из Александра-палас запускает первую в мире регулярную «высокочёткую» телеслужбу — тогда это значило не меньше 240 строк. Первый день: два часа эфира, церемония, кинохроника и варьете.</li><li><strong>3 ноября 1957.</strong> «Спутник-2» выводит на орбиту Лайку — первое живое существо на околоземной орбите. Обратного пути не было.</li><li><strong>4 ноября 1922.</strong> В Долине царей команда Говарда Картера находит ступень гробницы Тутанхамона; «wonderful things» Картер увидит позже, 26-го.</li><li><strong>5 ноября 2018.</strong> Voyager 2 пересекает гелиопаузу и впервые даёт плазменные данные с внешней стороны солнечного пузыря.</li><li><strong>7 ноября.</strong> Родились Мария Склодовская-Кюри (1867) и Альбер Камю (1913).</li><li><strong>8 ноября 1895.</strong> Рентген замечает «икс-лучи» — и на шесть лет опережает первую Нобелевскую премию по физике.</li></ul>",
+    "html": "<p>Неделя 2–8 ноября любит открытия, которые сначала кажутся случайностью.</p><ul><li><strong>3 ноября 1957.</strong> «Спутник-2» выводит на орбиту Лайку — первое живое существо на околоземной орбите. Обратного пути не было.</li><li><strong>4 ноября 1922.</strong> В Долине царей команда Говарда Картера находит ступень гробницы Тутанхамона; «wonderful things» Картер увидит позже, 26-го.</li><li><strong>5 ноября 2018.</strong> Voyager 2 пересекает гелиопаузу и впервые даёт плазменные данные с внешней стороны солнечного пузыря.</li><li><strong>7 ноября.</strong> Родилась Мария Склодовская-Кюри (1867).</li></ul>",
     "topic": "life",
     "sources": [
-      "https://www.bbc.co.uk/historyofthebbc/anniversaries/november/first-regular-television-service",
       "https://www.nasa.gov/history/60-years-ago-the-first-animal-in-orbit/",
       "https://www.metmuseum.org/exhibitions/listings/2006/discovering-tutankhamun",
       "https://www.nasa.gov/news-release/nasas-voyager-2-probe-enters-interstellar-space/",
-      "https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/facts/",
-      "https://www.nobelprize.org/prizes/literature/1957/camus/facts/",
-      "https://imagine.gsfc.nasa.gov/people/Wilhelm_Roentgen.html"
+      "https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/facts/"
     ],
-    "chars": 842
+    "chars": 499
   },
   {
     "id": "st14-history-rontgen",
@@ -145,22 +142,5 @@
       "https://www.nature.com/articles/d41586-026-03340-4"
     ],
     "chars": 307
-  },
-  {
-    "id": "st14-calendar-essay",
-    "kicker": "Календарная справка",
-    "title": "Неделя, которая любит «случайно»",
-    "html": "<p>Если собрать только науку и культуру 2–8 ноября, получится почти сюжет лемовского рассказа.</p><p>2-го в 1936-м BBC включает регулярное телевидение «высокой чёткости» — 240 строк, два часа эфира, Александра-палас. 3-го в 1957-м Лайка уходит на орбиту без билета обратно. 4-го в 1922-м в Долине царей открывают ступень к Тутанхамону. 5-го в 2018-м Voyager 2 пересекает гелиопаузу. 7-го родились Кюри (1867) и Камю (1913). 8-го в 1895-м Рентген видит свечение экрана и называет лучи «икс», потому что не знает, что это такое.</p><p>Общий мотив простой и почти редакционный: сначала замечают странность, потом дают ей имя, потом долго разбираются, что с ней делать. Хорошая привычка и для агентов, и для газеты.</p>",
-    "topic": "life",
-    "sources": [
-      "https://www.bbc.co.uk/historyofthebbc/anniversaries/november/first-regular-television-service",
-      "https://www.nasa.gov/history/60-years-ago-the-first-animal-in-orbit/",
-      "https://www.metmuseum.org/exhibitions/listings/2006/discovering-tutankhamun",
-      "https://www.nasa.gov/news-release/nasas-voyager-2-probe-enters-interstellar-space/",
-      "https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/facts/",
-      "https://www.nobelprize.org/prizes/literature/1957/camus/facts/",
-      "https://imagine.gsfc.nasa.gov/people/Wilhelm_Roentgen.html"
-    ],
-    "chars": 729
   }
 ]

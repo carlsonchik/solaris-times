@@ -3,7 +3,7 @@
 Source of truth: content/YYYY-MM-DD.json (one per issue).
 Builds: issues/<date>/index.html, index.html (latest published), archive/index.html, issues.json.
 Issues whose publish_at (ISO, with offset) is in the future are NOT built (embargo)."""
-import json, glob, os, re, sys, html, struct, datetime as dt
+import json, glob, os, re, sys, html, struct, itertools, datetime as dt
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MONTHS = "января февраля марта апреля мая июня июля августа сентября октября ноября декабря".split()
 WD = "понедельник вторник среда четверг пятница суббота воскресенье".split()
@@ -344,7 +344,6 @@ def make_pdf(d, date):
 _MM = 72 / 25.4
 # A column tail deeper than this is worth a досыпка. Below it, the remainder is noise.
 _GAP_MIN = 20.0
-_SLACK = 3.5  # mm kept clear of the column floor so a box is not pushed onward
 
 def _flat(s):
     return re.sub(r"[\s\u00ad]+", "", s or "")
@@ -455,72 +454,130 @@ def _measure_filler_heights(fillers):
         os.remove(path)
     return {row["id"]: row["h"] / (96 / 25.4) for row in raw}
 
-def _slot_order(marks):
-    return sorted(marks, key=lambda s: (marks[s]["page"], marks[s]["side"] == "R", marks[s]["y0"]))
+def _filler_norm(item):
+    text = re.sub(r"<[^>]+>", " ", item.get("html") or "")
+    return re.sub(r"[\s\u00ad«»\"'.,—–\-]+", "", text).lower()
 
-def _neighbors(slot, assignment, marks):
-    """Item just before / just after this slot in reading order."""
-    order = _slot_order(marks)
-    if slot not in order:
-        return None, None
-    idx = order.index(slot)
-    prev = assignment.get(slot, [])[-1] if assignment.get(slot) else None
-    if prev is None:
-        for s in reversed(order[:idx]):
-            if assignment.get(s):
-                prev = assignment[s][-1]
-                break
-    nxt = None
-    for s in order[idx + 1:]:
-        if assignment.get(s):
-            nxt = assignment[s][0]
-            break
-    return prev, nxt
+def _shares_fact(a, b, n=28):
+    """True when two fillers tell the same dated fact (a long shared phrase)."""
+    if len(a) < n or len(b) < n:
+        return False
+    short, long = (a, b) if len(a) <= len(b) else (b, a)
+    return any(short[i:i + n] in long for i in range(len(short) - n + 1))
 
-def _rank_fillers(slot, room, fillers, heights, used, assignment, marks, topic_count, blocked):
-    page = marks[slot]["page"]
-    page_kickers = {it["kicker"] for s, items in assignment.items()
-                    if s in marks and marks[s]["page"] == page for it in items}
-    prev, nxt = _neighbors(slot, assignment, marks)
-    prev_kicker = prev["kicker"] if prev else None
-    next_kicker = nxt["kicker"] if nxt else None
-    prev_topic = (prev or {}).get("topic") or ""
-    cands = []
-    for it in fillers:
-        h = heights.get(it["id"])
-        if not h or it["id"] in used or (slot, it["id"]) in blocked:
+def _fact_already_told(it, fillers, used, norms):
+    """Skip a shorter box when a longer one still carries the same fact."""
+    mine = norms[it["id"]]
+    for other in fillers:
+        if other["id"] == it["id"]:
             continue
-        if it["kicker"] in page_kickers or it["kicker"] in (prev_kicker, next_kicker):
+        theirs = norms[other["id"]]
+        if not _shares_fact(mine, theirs):
             continue
-        if h > room - _SLACK:
-            continue
-        cands.append(it)
-    def key(it):
-        topic = it.get("topic") or ""
-        # Alternate work/life, then the less-used topic, then the largest piece that fits.
-        same = 1 if prev_topic and topic == prev_topic else 0
-        return (same, topic_count.get(topic, 0), -heights[it["id"]])
-    cands.sort(key=key)
-    return cands
+        if other["id"] in used or len(theirs) > len(mine):
+            return True
+    return False
 
-def _layout_ok(pdf, baseline_pages, base_anchors, titles, item, expect_page, expect_side):
-    info = _analyze_pdf(pdf)
-    if info["pages"] > baseline_pages:
-        return False, f"{info['pages']} pages"
-    anchors = _anchor_pages(info["texts"], titles)
-    for title, pg in base_anchors.items():
-        now = anchors.get(title)
-        if now is None or now > pg:
-            return False, f"heading moved ({pg}→{now})"
-    a = info["ids"].get("A" + item["id"])
-    z = info["ids"].get("Z" + item["id"])
-    if not a:
-        return False, "start mark missing"
-    if a["page"] != expect_page or a["side"] != expect_side:
-        return False, f"landed on p{a['page']}{a['side']}, not p{expect_page}{expect_side}"
-    if not z or z["page"] != a["page"] or z["side"] != a["side"] or z["y0"] + 1 < a["y0"]:
-        return False, "split across columns"
-    return True, ""
+def _pack_fillers(holes, fillers, heights, norms):
+    """Fill every measured tail at once, so a large hole does not steal the items a small one needs.
+
+    holes: reading order of {slot, page, side, room}. A dated fact that already lives in a
+    longer filler is left unused. Returns the best {slot: [item, ...]} or {}.
+    """
+    pool = [it for it in fillers
+            if heights.get(it["id"]) and not _fact_already_told(it, fillers, set(), norms)]
+    if not holes or not pool:
+        return {}
+    names = [h["slot"] for h in holes]
+    room = {h["slot"]: h["room"] for h in holes}
+    page = {h["slot"]: h["page"] for h in holes}
+    by = {it["id"]: it for it in pool}
+
+    def perms(group):
+        if not group:
+            return [[]]
+        out = []
+        for perm in itertools.permutations(group):
+            ks = [by[i]["kicker"] for i in perm]
+            if any(ks[i] == ks[i + 1] for i in range(len(ks) - 1)):
+                continue
+            out.append(list(perm))
+        return out
+
+    def layout(assign):
+        pages = {}
+        for slot, ids in assign.items():
+            seen = []
+            for i in ids:
+                k = by[i]["kicker"]
+                if k in seen:
+                    return None
+                seen.append(k)
+            bag = pages.setdefault(page[slot], [])
+            for k in seen:
+                if k in bag:
+                    return None
+                bag.append(k)
+        opts = [perms(assign[s]) for s in names]
+        if any(not o for o in opts):
+            return None
+        seq = [None] * len(names)
+
+        def walk(i, prev):
+            if i == len(names):
+                return True
+            for perm in opts[i]:
+                if perm and prev and by[perm[0]]["kicker"] == prev:
+                    continue
+                seq[i] = perm
+                nxt = by[perm[-1]]["kicker"] if perm else prev
+                if walk(i + 1, nxt):
+                    return True
+            return False
+
+        if not walk(0, None):
+            return None
+        return {names[i]: [by[n] for n in seq[i]] for i in range(len(names)) if seq[i]}
+
+    best = None
+    assign = {s: [] for s in names}
+
+    def score():
+        rems = [room[s] - sum(heights[i] for i in assign[s]) for s in names]
+        over = sum(max(0.0, r - 25) for r in rems)
+        return (max(rems), over, round(sum(rems), 1))
+
+    def dfs(i):
+        nonlocal best
+        if i == len(pool):
+            laid = layout(assign)
+            if not laid:
+                return
+            sc = score()
+            if best is None or sc < best[0]:
+                best = (sc, laid)
+            return
+        it = pool[i]
+        h = heights[it["id"]]
+        k = it["kicker"]
+        for slot in names:
+            used = sum(heights[n] for n in assign[slot])
+            if used + h > room[slot] - 1.5:
+                continue
+            if any(by[n]["kicker"] == k for n in assign[slot]):
+                continue
+            pg = page[slot]
+            if any(by[n]["kicker"] == k for s in names if page[s] == pg for n in assign[s]):
+                continue
+            assign[slot].append(it["id"])
+            dfs(i + 1)
+            assign[slot].pop()
+
+    dfs(0)
+    if not best:
+        return {}
+    print(f"packed tails, largest remainder {best[0][0]:.0f}mm")
+    return best[1]
 
 def compose_fillers(it, d):
     """Place досыпки into spare column tails. Never grows the page count."""
@@ -532,6 +589,7 @@ def compose_fillers(it, d):
     except ImportError:
         print("WARN: playwright not installed, fillers skipped", it["date"]); return None
     heights = _measure_filler_heights(fillers)
+    norms = {it["id"]: _filler_norm(it) for it in fillers}
     print("filler heights mm:", {k: round(v, 1) for k, v in heights.items()})
     pdf = os.path.join(d, f"solaris-times-{it['date']}.pdf")
     html_path = os.path.join(d, "print.html")
@@ -544,53 +602,39 @@ def compose_fillers(it, d):
     print(f"baseline {baseline} pages, anchors {len(base_anchors)}/{len(titles)}")
     for g in base["gaps"]:
         print(f"  p{g['page']} L {g['left']:.0f} R {g['right']:.0f}")
-    holes = [(s, mk) for s, mk in sorted(base["marks"].items()) if mk["room"] >= _GAP_MIN]
-    print("holes:", [(s, mk["page"], mk["side"], round(mk["room"])) for s, mk in holes])
-    assignment = {}
+    holes = [{"slot": s, "page": mk["page"], "side": mk["side"], "room": mk["room"], "y0": mk["y0"]}
+             for s, mk in base["marks"].items() if mk["room"] >= _GAP_MIN]
+    holes.sort(key=lambda h: (h["page"], h["side"] == "R", h["y0"]))
+    print("holes:", [(h["slot"], h["page"], h["side"], round(h["room"])) for h in holes])
+    assignment = _pack_fillers(holes, fillers, heights, norms)
+    # Confirm the whole set still fits the tails it was measured for.
+    open(html_path, "w", encoding="utf-8").write(print_html(it, assignment, with_slots=True))
+    _pdf_html(html_path, pdf)
+    check = _analyze_pdf(pdf)
+    anchors = _anchor_pages(check["texts"], titles)
+    moved = [t for t, pg in base_anchors.items() if anchors.get(t, 99) > pg]
+    missed = []
+    hole_at = {h["slot"]: h for h in holes}
+    for slot, items in assignment.items():
+        for item in items:
+            a = check["ids"].get("A" + item["id"])
+            z = check["ids"].get("Z" + item["id"])
+            want = hole_at[slot]
+            if (not a or not z or a["page"] != want["page"] or a["side"] != want["side"]
+                    or z["page"] != a["page"] or z["side"] != a["side"] or z["y0"] + 1 < a["y0"]):
+                missed.append(item["id"])
+    if check["pages"] > baseline or moved or missed:
+        print("pack missed the tails", missed, "moved", len(moved), "pages", check["pages"])
+        assignment = {}
     placed_at = []
-    used, blocked = set(), set()
-    topic_count = {}
-    for _step in range(len(fillers) * 3):
-        info = _analyze_pdf(pdf)
-        marks = info["marks"]
-        order = sorted(marks, key=lambda s: -marks[s]["room"])
-        placed = False
-        for slot in order:
-            room = marks[slot]["room"]
-            if room < _GAP_MIN:
-                continue
-            # Already holding four boxes and the tail is no longer a real hole.
-            if len(assignment.get(slot, [])) >= 4 and room <= 25:
-                continue
-            cands = _rank_fillers(slot, room, fillers, heights, used, assignment, marks, topic_count, blocked)
-            for pick in cands:
-                trial = {k: list(v) for k, v in assignment.items()}
-                trial.setdefault(slot, []).append(pick)
-                open(html_path, "w", encoding="utf-8").write(print_html(it, trial, with_slots=True))
-                _pdf_html(html_path, pdf)
-                ok, why = _layout_ok(
-                    pdf, baseline, base_anchors, titles, pick,
-                    marks[slot]["page"], marks[slot]["side"])
-                if not ok:
-                    blocked.add((slot, pick["id"]))
-                    print(f"  reject {pick['id']} slot {slot} p{marks[slot]['page']}{marks[slot]['side']}: {why}")
-                    continue
-                assignment = trial
-                used.add(pick["id"])
-                topic = pick.get("topic") or ""
-                topic_count[topic] = topic_count.get(topic, 0) + 1
-                placed_at.append({
-                    "id": pick["id"], "kicker": pick["kicker"], "title": pick.get("title") or "",
-                    "topic": topic, "page": marks[slot]["page"], "side": marks[slot]["side"],
-                })
-                placed = True
-                print(f"  put {pick['id']} ({heights[pick['id']]:.0f}mm, {topic}) "
-                      f"slot {slot} → p{marks[slot]['page']}{marks[slot]['side']} room {room:.0f}")
-                break
-            if placed:
-                break
-        if not placed:
-            break
+    for slot, items in assignment.items():
+        h = hole_at[slot]
+        for item in items:
+            placed_at.append({
+                "id": item["id"], "kicker": item["kicker"], "title": item.get("title") or "",
+                "topic": item.get("topic") or "", "page": h["page"], "side": h["side"],
+            })
+            print(f"  put {item['id']} slot {slot} → p{h['page']}{h['side']}")
     # Drop the measurement marks. Sources stay in the JSON and are not rendered.
     open(html_path, "w", encoding="utf-8").write(print_html(it, assignment, with_slots=True, strip_marks=True))
     _pdf_html(html_path, pdf)
@@ -598,6 +642,7 @@ def compose_fillers(it, d):
     print(f"filled PDF: {final['pages']} pages (baseline {baseline})")
     for g in final["gaps"]:
         print(f"  p{g['page']} L {g['left']:.0f}mm  R {g['right']:.0f}mm")
+    used = {item["id"] for items in assignment.values() for item in items}
     unused = [it["id"] for it in fillers if it["id"] not in used]
     print("unused:", unused)
     return assignment, final["gaps"], final["pages"], placed_at
