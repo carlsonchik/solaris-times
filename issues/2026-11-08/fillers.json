@@ -1,0 +1,146 @@
+[
+  {
+    "id": "st14-word-apophenia",
+    "kicker": "Слово недели",
+    "title": "Апофения",
+    "html": "<p>Склонность видеть связи там, где их нет. Немецкий психиатр Клаус Конрад ввёл термин <em>Apophänie</em> в 1958 году; от греч. <em>ἀποφαίνω</em> — «делать явным, показывать». В эпоху языковых моделей это почти профессиональный риск: модель находит узор в шуме, читатель — смысл в узоре. Редакционное правило простое — сначала первоисточник, потом красота совпадения.</p>",
+    "topic": "work",
+    "sources": [
+      "https://www.etymonline.com/word/apophenia",
+      "https://en.wiktionary.org/wiki/apophenia"
+    ],
+    "chars": 355
+  },
+  {
+    "id": "st14-history-week",
+    "kicker": "Эта неделя в истории",
+    "title": "2–8 ноября",
+    "html": "<p>Неделя 2–8 ноября любит открытия, которые сначала кажутся случайностью.</p><ul><li><strong>3 ноября 1957.</strong> «Спутник-2» выводит на орбиту Лайку — первое живое существо на околоземной орбите. Обратного пути не было.</li><li><strong>4 ноября 1922.</strong> В Долине царей команда Говарда Картера находит ступень гробницы Тутанхамона; «wonderful things» Картер увидит позже, 26-го.</li><li><strong>5 ноября 2018.</strong> Voyager 2 пересекает гелиопаузу и впервые даёт плазменные данные с внешней стороны солнечного пузыря.</li><li><strong>7 ноября.</strong> Родилась Мария Склодовская-Кюри (1867).</li></ul>",
+    "topic": "life",
+    "sources": [
+      "https://www.nasa.gov/history/60-years-ago-the-first-animal-in-orbit/",
+      "https://www.metmuseum.org/exhibitions/listings/2006/discovering-tutankhamun",
+      "https://www.nasa.gov/news-release/nasas-voyager-2-probe-enters-interstellar-space/",
+      "https://www.nobelprize.org/prizes/chemistry/1911/marie-curie/facts/"
+    ],
+    "chars": 499
+  },
+  {
+    "id": "st14-history-rontgen",
+    "kicker": "Эта неделя в истории",
+    "title": "8 ноября 1895",
+    "html": "<p>Вильгельм Конрад Рентген в лаборатории замечает свечение экрана вдалеке от трубки — и называет неизвестные лучи «икс». Через шесть лет получит первую Нобелевскую премию по физике.</p>",
+    "topic": "work",
+    "sources": [
+      "https://imagine.gsfc.nasa.gov/people/Wilhelm_Roentgen.html",
+      "https://www.nobelprize.org/prizes/physics/1901/perspectives/"
+    ],
+    "chars": 193
+  },
+  {
+    "id": "st14-history-laika",
+    "kicker": "Эта неделя в истории",
+    "title": "3 ноября 1957",
+    "html": "<p>«Спутник-2» выводит на орбиту Лайку — первую живую пассажирку околоземной орбиты. Обратного пути конструкторы не предусмотрели.</p>",
+    "topic": "work",
+    "sources": [
+      "https://www.nasa.gov/history/60-years-ago-the-first-animal-in-orbit/"
+    ],
+    "chars": 141
+  },
+  {
+    "id": "st14-riddle-agents",
+    "kicker": "Загадка",
+    "title": "Три агента и одна фраза",
+    "html": "<p>Три агента получили одну инструкцию: «Когда экран станет синим — отправь отчёт».</p><p>Первый смотрит на пиксели и видит синий. Второй смотрит на спектр и видит смесь, которую глаз называет синей. Третий смотрит на журнал намерений и замечает, что «синий» уже семнадцать раз был формально выполнен — и каждый раз отчёт уходил честно.</p><p>Кто из них ближе к смыслу фразы — и чья это ошибка, если все трое правы по-своему?</p><p><strong>Ответ:</strong> ошибка формулировки. «Синий» без критерия остановки — ловушка для буквальной памяти. Агент без условия «достаточно» будет честен и бесконечен.</p>",
+    "topic": "work",
+    "sources": [],
+    "chars": 584
+  },
+  {
+    "id": "st14-quote-lem",
+    "kicker": "Цитата недели",
+    "html": "<p>«Мы не ищем никого, кроме людей. Не нужно нам других миров. Нам нужно зеркало.»</p><p>— Станислав Лем, <em>«Солярис»</em> (1961)</p>",
+    "topic": "life",
+    "sources": [
+      "https://en.wikiquote.org/wiki/Stanis%C5%82aw_Lem",
+      "https://citaty.info/quote/160727"
+    ],
+    "chars": 113
+  },
+  {
+    "id": "st14-quote-sagan",
+    "kicker": "Цитата недели",
+    "html": "<p>«Look again at that dot. That’s here. That’s home. That’s us.»</p><p>— Карл Саган о «Pale Blue Dot», Voyager 1, 14 февраля 1990</p>",
+    "topic": "life",
+    "sources": [
+      "https://science.nasa.gov/mission/voyager/voyager-1s-pale-blue-dot/"
+    ],
+    "chars": 121
+  },
+  {
+    "id": "st14-quote-camus",
+    "kicker": "Цитата недели",
+    "html": "<p>«Нужно представить себе Сизифа счастливым.»</p><p>— Альбер Камю, <em>«Миф о Сизифе»</em> (1942). День рождения — 7 ноября 1913.</p>",
+    "topic": "life",
+    "sources": [
+      "https://www.nobelprize.org/prizes/literature/1957/camus/facts/",
+      "https://plato.stanford.edu/entries/camus/"
+    ],
+    "chars": 112
+  },
+  {
+    "id": "st14-shorts-week",
+    "kicker": "Короткой строкой",
+    "html": "<ul><li><strong>6 ноября.</strong> Physical Superintelligence: исследовательская система (непубличная модель Anthropic) доказала гипотезу Ааронсона–Амбайниса (2008) о том, когда квантовый компьютер может быть экспоненциально быстрее классического на случайных входах. Доказательство принято ядром Lean; препринт — arXiv:2611.09773.</li><li><strong>4 ноября.</strong> Hubble впервые поймал вторичное затмение каменистой экзопланеты TOI-2431 b — «лава-мира» массой 6,2 Земли на орбите 5,4 часа. Температура дневной стороны ≈ 2524 K.</li></ul>",
+    "topic": "work",
+    "sources": [
+      "https://psi.inc/research/aaronson-ambainis/",
+      "https://arxiv.org/abs/2611.09773",
+      "https://aasnova.org/2026/11/04/first-detection-of-a-rocky-exoplanets-secondary-eclipse-by-hubble/"
+    ],
+    "chars": 480
+  },
+  {
+    "id": "st14-number-voyager",
+    "kicker": "Число вне рубрики",
+    "title": "6 млрд км",
+    "html": "<p>С такого расстояния от Солнца Voyager 1 14 февраля 1990 года снял Землю размером с пиксель — тот самый <em>Pale Blue Dot</em>. Камеры после этого навсегда выключили.</p>",
+    "topic": "work",
+    "sources": [
+      "https://science.nasa.gov/mission/voyager/voyager-1s-pale-blue-dot/"
+    ],
+    "chars": 167
+  },
+  {
+    "id": "st14-bookshelf-watts",
+    "kicker": "Книжная полка",
+    "title": "Одна строка",
+    "html": "<p>Питер Уоттс, <em>«Ложная слепота»</em>: контакт с чужим разумом без утешительного «и они тоже люди». После недели про агентов и намерения читается как холодный душ.</p>",
+    "topic": "life",
+    "sources": [],
+    "chars": 168
+  },
+  {
+    "id": "st14-fact-bbc",
+    "kicker": "Факт для разговора",
+    "title": "2 ноября 1936",
+    "html": "<p>BBC из Александра-палас начинает первую регулярную телеслужбу «высокой чёткости» — то есть от 240 строк. В первый день эфир шёл два часа: церемония, кинохроника и варьете. Джон Рейт телевидение не любил и позже признавался, что почти не смотрел.</p>",
+    "topic": "life",
+    "sources": [
+      "https://www.bbc.co.uk/historyofthebbc/anniversaries/november/first-regular-television-service"
+    ],
+    "chars": 259
+  },
+  {
+    "id": "st14-fact-ai-grants",
+    "kicker": "Факт для разговора",
+    "title": "ИИ и гранты",
+    "html": "<p>3 ноября Nature Index разбирает исследование: GPT-4o, которому дали сравнивать заявки Австрийского научного фонда, в 60% случаев совпал с людьми — но систематически реже выбирал работы с высокой новизной. Скорость рецензии растёт; цена может быть в том, что новое реже проходит как «узнаваемое».</p>",
+    "topic": "work",
+    "sources": [
+      "https://www.nature.com/articles/d41586-026-03340-4"
+    ],
+    "chars": 307
+  }
+]
