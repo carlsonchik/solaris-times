@@ -246,13 +246,72 @@ def keep_print_openings(body):
         r'\2<p class="part-title">\1</p>',
         body, flags=re.S)
 
-def print_html(it):
+def load_fillers(date):
+    """Optional print-only pool: issues/<date>/fillers.json. Absent → no досыпки."""
+    path = os.path.join(ROOT, "issues", date, "fillers.json")
+    if not os.path.isfile(path):
+        return []
+    return json.load(open(path, encoding="utf-8"))
+
+def filler_box(item):
+    title = f'<h4>{html.escape(item["title"])}</h4>' if item.get("title") else ""
+    ident = html.escape(item["id"])
+    # A/Z marks bracket the box so a split across columns is visible. Stripped before the final PDF.
+    return (f'<aside class="filler" data-id="{ident}" '
+            f'data-kicker="{html.escape(item["kicker"])}">'
+            f'<span class="fill-mark">FID:{ident}:A</span>'
+            f'<p class="kicker">{html.escape(item["kicker"])}</p>{title}{item["html"]}'
+            f'<span class="fill-mark">FID:{ident}:Z</span></aside>')
+
+_SLOT_RE = re.compile(r'<section class="part"|<article class="feature"|<section class="rubric"')
+
+def insert_fill_slots(body):
+    """Markers before each part, later feature, and rubric — the spots a page break leaves empty."""
+    parts, pos, n, after_part = [], 0, 0, False
+    for m in _SLOT_RE.finditer(body):
+        kind = m.group(0)
+        slot = ""
+        if kind.startswith("<section class=\"part"):
+            slot = f'<span class="fill-mark" data-slot="{n}">FS{n:02d}</span>'
+            n += 1
+            after_part = True
+        elif kind.startswith("<article class=\"feature"):
+            if after_part:
+                after_part = False  # shares the part's page break
+            else:
+                slot = f'<span class="fill-mark" data-slot="{n}">FS{n:02d}</span>'
+                n += 1
+        else:
+            after_part = False
+            slot = f'<span class="fill-mark" data-slot="{n}">FS{n:02d}</span>'
+            n += 1
+        parts.append(body[pos:m.start()] + slot)
+        pos = m.start()
+    parts.append(body[pos:])
+    parts.append(f'<span class="fill-mark" data-slot="{n}">FS{n:02d}</span>')
+    return "".join(parts), n + 1
+
+def apply_slot_fillers(body, slot_items):
+    """slot_items: {slot index: [filler dict, ...]}."""
+    def repl(m):
+        idx = int(m.group(1))
+        boxes = "".join(filler_box(it) for it in slot_items.get(idx, []))
+        return boxes + m.group(0)
+    return re.sub(r'<span class="fill-mark" data-slot="(\d+)">FS\d+</span>', repl, body)
+
+def print_html(it, slot_items=None, with_slots=False, strip_marks=False):
     body = it["body"].replace("{{ROOT}}", "../../")
     body = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', body, flags=re.S)  # print: links -> plain text, no sources
     weekly = is_weekly(it)
     if weekly:
         body = place_print_figures(body)
         body = keep_print_openings(body)
+        if with_slots or slot_items is not None:
+            body, _ = insert_fill_slots(body)
+            if slot_items:
+                body = apply_slot_fillers(body, slot_items)
+            if strip_marks:
+                body = re.sub(r'<span class="fill-mark"[^>]*>.*?</span>', '', body)
     orbit = "еженедельная газета для одного читателя" if weekly else "ежедневная газета для одного читателя"
     cover = ""
     if weekly:
@@ -265,19 +324,283 @@ def print_html(it):
 <p class="lede">{it["lede"]}</p>{cover}<div class="paper">{body}</div>
 </body></html>"""
 
-def make_pdf(d, date):
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        print("WARN: playwright not installed, PDF skipped for", date); return
-    out = os.path.join(d, f"solaris-times-{date}.pdf")
+def _pdf_html(html_path, pdf_path):
+    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(); pg = b.new_page()
-        pg.goto("file://" + os.path.join(d, "print.html"), wait_until="networkidle")
-        pg.pdf(path=out, format="A4", print_background=True, margin={"top":"14mm","bottom":"16mm","left":"13mm","right":"13mm"},
+        pg.goto("file://" + html_path, wait_until="networkidle")
+        pg.pdf(path=pdf_path, format="A4", print_background=True, margin={"top":"14mm","bottom":"16mm","left":"13mm","right":"13mm"},
                display_header_footer=True, header_template="<span></span>",
                footer_template='<div style="font:8px serif;width:100%;text-align:center;color:#555">Solaris Times · <span class="pageNumber"></span>/<span class="totalPages"></span></div>')
         b.close()
+
+def make_pdf(d, date):
+    try:
+        import playwright  # noqa: F401
+    except ImportError:
+        print("WARN: playwright not installed, PDF skipped for", date); return
+    _pdf_html(os.path.join(d, "print.html"), os.path.join(d, f"solaris-times-{date}.pdf"))
+
+_MM = 72 / 25.4
+# A column tail deeper than this is worth a досыпка. Below it, the remainder is noise.
+_GAP_MIN = 20.0
+_SLACK = 3.5  # mm kept clear of the column floor so a box is not pushed onward
+
+def _flat(s):
+    return re.sub(r"[\s\u00ad]+", "", s or "")
+
+def _editorial_titles(it):
+    titles = []
+    for m in re.finditer(r"<h[23][^>]*>(.*?)</h[23]>", it["body"], re.S):
+        t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(1))).strip()
+        if len(t) >= 18:
+            titles.append(t)
+    return titles
+
+def _analyze_pdf(pdf_path):
+    """Column tails (mm) and where each FS marker sits, with the room below it."""
+    import fitz
+    doc = fitz.open(pdf_path)
+    top, bot = 14 * _MM, 16 * _MM
+    gaps, marks, texts, content, floors, ids = [], {}, [], [], [], {}
+    try:
+        for i, page in enumerate(doc):
+            r = page.rect
+            floor = r.height - bot
+            floors.append(floor)
+            mid = r.width / 2
+            cols = {"L": [], "R": []}
+            texts.append(page.get_text())
+            for b in page.get_text("dict")["blocks"]:
+                x0, y0, x1, y1 = b["bbox"]
+                if y0 > r.height - 28:
+                    continue
+                text = ""
+                if b.get("type") == 0:
+                    for ln in b.get("lines", []):
+                        text += "".join(s["text"] for s in ln["spans"])
+                    if "Solaris Times" in text:
+                        continue
+                compact = re.sub(r"\s+", "", text)
+                side = "L" if (x0 + x1) / 2 < mid else "R"
+                if b.get("type") == 0:
+                    # A box-end mark and the following slot mark often share one PDF block.
+                    for mid_id in re.finditer(r"FID:([^:]+):([AZ])", compact):
+                        ids[mid_id.group(2) + mid_id.group(1)] = {
+                            "page": i + 1, "side": side, "y0": y0, "y1": y1}
+                    for m in re.finditer(r"FS(\d+)", compact):
+                        marks[int(m.group(1))] = {"page": i + 1, "side": side, "y0": y0, "y1": y1}
+                    leftover = re.sub(r"FID:[^:]+:[AZ]|FS\d+", "", compact)
+                    if leftover == "":
+                        continue
+                cols[side].append((y0, y1))
+            content.append(cols)
+            def gap(side):
+                if not cols[side]:
+                    return (floor - top) / _MM
+                return (floor - max(y1 for _, y1 in cols[side])) / _MM
+            gaps.append({"page": i + 1, "left": gap("L"), "right": gap("R")})
+        for slot, mk in marks.items():
+            spans = content[mk["page"] - 1][mk["side"]]
+            floor = floors[mk["page"] - 1]
+            below = [y0 for y0, _y1 in spans if y0 > mk["y1"] - 0.6]
+            if below:
+                room = (min(below) - mk["y0"]) / _MM
+            else:
+                above = [y1 for y0, y1 in spans if y1 <= mk["y0"] + 1.0]
+                end = max(above) if above else mk["y0"]
+                room = (floor - end) / _MM
+            mk["room"] = room
+        return {"pages": doc.page_count, "gaps": gaps, "marks": marks, "texts": texts, "ids": ids}
+    finally:
+        doc.close()
+
+def _anchor_pages(texts, titles):
+    flats = [_flat(t) for t in texts]
+    found = {}
+    for title in titles:
+        key = _flat(title)[:36]
+        if len(key) < 12:
+            continue
+        for i, ft in enumerate(flats):
+            if key in ft:
+                found[title] = i + 1
+                break
+    return found
+
+def _measure_filler_heights(fillers):
+    """Height of each досыпка in one print column, in millimetres, margins included."""
+    from playwright.sync_api import sync_playwright
+    boxes = "".join(f'<div class="probe">{filler_box(it)}</div>' for it in fillers)
+    page = f'''<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="file://{ROOT}/assets/print.css">
+<style>.probe{{width:89.5mm;margin:0 0 4mm;padding:0;border:0}}</style></head>
+<body class="weekly"><div>{boxes}</div></body></html>'''
+    path = os.path.join(ROOT, "issues", "_filler_probe.html")
+    open(path, "w", encoding="utf-8").write(page)
+    try:
+        with sync_playwright() as p:
+            b = p.chromium.launch(); pg = b.new_page()
+            pg.emulate_media(media="print")
+            pg.goto("file://" + path, wait_until="networkidle")
+            pg.evaluate("() => document.fonts.ready")
+            raw = pg.evaluate("""() => [...document.querySelectorAll('.filler')].map(el => {
+              const cs = getComputedStyle(el);
+              const h = el.getBoundingClientRect().height
+                + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+              return {id: el.dataset.id, h};})""")
+            b.close()
+    finally:
+        os.remove(path)
+    return {row["id"]: row["h"] / (96 / 25.4) for row in raw}
+
+def _slot_order(marks):
+    return sorted(marks, key=lambda s: (marks[s]["page"], marks[s]["side"] == "R", marks[s]["y0"]))
+
+def _neighbors(slot, assignment, marks):
+    """Item just before / just after this slot in reading order."""
+    order = _slot_order(marks)
+    if slot not in order:
+        return None, None
+    idx = order.index(slot)
+    prev = assignment.get(slot, [])[-1] if assignment.get(slot) else None
+    if prev is None:
+        for s in reversed(order[:idx]):
+            if assignment.get(s):
+                prev = assignment[s][-1]
+                break
+    nxt = None
+    for s in order[idx + 1:]:
+        if assignment.get(s):
+            nxt = assignment[s][0]
+            break
+    return prev, nxt
+
+def _rank_fillers(slot, room, fillers, heights, used, assignment, marks, topic_count, blocked):
+    page = marks[slot]["page"]
+    page_kickers = {it["kicker"] for s, items in assignment.items()
+                    if s in marks and marks[s]["page"] == page for it in items}
+    prev, nxt = _neighbors(slot, assignment, marks)
+    prev_kicker = prev["kicker"] if prev else None
+    next_kicker = nxt["kicker"] if nxt else None
+    prev_topic = (prev or {}).get("topic") or ""
+    cands = []
+    for it in fillers:
+        h = heights.get(it["id"])
+        if not h or it["id"] in used or (slot, it["id"]) in blocked:
+            continue
+        if it["kicker"] in page_kickers or it["kicker"] in (prev_kicker, next_kicker):
+            continue
+        if h > room - _SLACK:
+            continue
+        cands.append(it)
+    def key(it):
+        topic = it.get("topic") or ""
+        # Alternate work/life, then the less-used topic, then the largest piece that fits.
+        same = 1 if prev_topic and topic == prev_topic else 0
+        return (same, topic_count.get(topic, 0), -heights[it["id"]])
+    cands.sort(key=key)
+    return cands
+
+def _layout_ok(pdf, baseline_pages, base_anchors, titles, item, expect_page, expect_side):
+    info = _analyze_pdf(pdf)
+    if info["pages"] > baseline_pages:
+        return False, f"{info['pages']} pages"
+    anchors = _anchor_pages(info["texts"], titles)
+    for title, pg in base_anchors.items():
+        now = anchors.get(title)
+        if now is None or now > pg:
+            return False, f"heading moved ({pg}→{now})"
+    a = info["ids"].get("A" + item["id"])
+    z = info["ids"].get("Z" + item["id"])
+    if not a:
+        return False, "start mark missing"
+    if a["page"] != expect_page or a["side"] != expect_side:
+        return False, f"landed on p{a['page']}{a['side']}, not p{expect_page}{expect_side}"
+    if not z or z["page"] != a["page"] or z["side"] != a["side"] or z["y0"] + 1 < a["y0"]:
+        return False, "split across columns"
+    return True, ""
+
+def compose_fillers(it, d):
+    """Place досыпки into spare column tails. Never grows the page count."""
+    fillers = load_fillers(it["date"])
+    if not fillers or not is_weekly(it):
+        return None
+    try:
+        import playwright  # noqa: F401
+    except ImportError:
+        print("WARN: playwright not installed, fillers skipped", it["date"]); return None
+    heights = _measure_filler_heights(fillers)
+    print("filler heights mm:", {k: round(v, 1) for k, v in heights.items()})
+    pdf = os.path.join(d, f"solaris-times-{it['date']}.pdf")
+    html_path = os.path.join(d, "print.html")
+    titles = _editorial_titles(it)
+    open(html_path, "w", encoding="utf-8").write(print_html(it, with_slots=True))
+    _pdf_html(html_path, pdf)
+    base = _analyze_pdf(pdf)
+    baseline = base["pages"]
+    base_anchors = _anchor_pages(base["texts"], titles)
+    print(f"baseline {baseline} pages, anchors {len(base_anchors)}/{len(titles)}")
+    for g in base["gaps"]:
+        print(f"  p{g['page']} L {g['left']:.0f} R {g['right']:.0f}")
+    holes = [(s, mk) for s, mk in sorted(base["marks"].items()) if mk["room"] >= _GAP_MIN]
+    print("holes:", [(s, mk["page"], mk["side"], round(mk["room"])) for s, mk in holes])
+    assignment = {}
+    placed_at = []
+    used, blocked = set(), set()
+    topic_count = {}
+    for _step in range(len(fillers) * 3):
+        info = _analyze_pdf(pdf)
+        marks = info["marks"]
+        order = sorted(marks, key=lambda s: -marks[s]["room"])
+        placed = False
+        for slot in order:
+            room = marks[slot]["room"]
+            if room < _GAP_MIN:
+                continue
+            # Already holding four boxes and the tail is no longer a real hole.
+            if len(assignment.get(slot, [])) >= 4 and room <= 25:
+                continue
+            cands = _rank_fillers(slot, room, fillers, heights, used, assignment, marks, topic_count, blocked)
+            for pick in cands:
+                trial = {k: list(v) for k, v in assignment.items()}
+                trial.setdefault(slot, []).append(pick)
+                open(html_path, "w", encoding="utf-8").write(print_html(it, trial, with_slots=True))
+                _pdf_html(html_path, pdf)
+                ok, why = _layout_ok(
+                    pdf, baseline, base_anchors, titles, pick,
+                    marks[slot]["page"], marks[slot]["side"])
+                if not ok:
+                    blocked.add((slot, pick["id"]))
+                    print(f"  reject {pick['id']} slot {slot} p{marks[slot]['page']}{marks[slot]['side']}: {why}")
+                    continue
+                assignment = trial
+                used.add(pick["id"])
+                topic = pick.get("topic") or ""
+                topic_count[topic] = topic_count.get(topic, 0) + 1
+                placed_at.append({
+                    "id": pick["id"], "kicker": pick["kicker"], "title": pick.get("title") or "",
+                    "topic": topic, "page": marks[slot]["page"], "side": marks[slot]["side"],
+                })
+                placed = True
+                print(f"  put {pick['id']} ({heights[pick['id']]:.0f}mm, {topic}) "
+                      f"slot {slot} → p{marks[slot]['page']}{marks[slot]['side']} room {room:.0f}")
+                break
+            if placed:
+                break
+        if not placed:
+            break
+    # Drop the measurement marks. Sources stay in the JSON and are not rendered.
+    open(html_path, "w", encoding="utf-8").write(print_html(it, assignment, with_slots=True, strip_marks=True))
+    _pdf_html(html_path, pdf)
+    final = _analyze_pdf(pdf)
+    print(f"filled PDF: {final['pages']} pages (baseline {baseline})")
+    for g in final["gaps"]:
+        print(f"  p{g['page']} L {g['left']:.0f}mm  R {g['right']:.0f}mm")
+    unused = [it["id"] for it in fillers if it["id"] not in used]
+    print("unused:", unused)
+    return assignment, final["gaps"], final["pages"], placed_at
 
 def main():
     now = dt.datetime.now(dt.timezone.utc)
@@ -291,7 +614,11 @@ def main():
         check_length(it)
         open(os.path.join(d, "index.html"), "w", encoding="utf-8").write(issue_html(it, prev, nxt, 2))
         open(os.path.join(d, "print.html"), "w", encoding="utf-8").write(print_html(it))
-        if "--no-pdf" not in sys.argv: make_pdf(d, it["date"])
+        if "--no-pdf" not in sys.argv:
+            if is_weekly(it) and load_fillers(it["date"]):
+                compose_fillers(it, d)
+            else:
+                make_pdf(d, it["date"])
     if issues:
         latest = issues[-1]
         open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(

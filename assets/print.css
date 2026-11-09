@@ -48,3 +48,13 @@ sup{font-size:6pt;color:#2a6f68}
 /* Heading, kicker, and the first lines of body stay in one column.
    build.py wraps them; this is what the PDF engine actually honors. */
 .keep{break-inside:avoid;page-break-inside:avoid;-webkit-column-break-inside:avoid;display:block}
+/* Short fillers («досыпки») only in the print PDF, in the spare column space. */
+.filler{break-inside:avoid;page-break-inside:avoid;-webkit-column-break-inside:avoid;display:block;border-top:.6pt solid #111;margin:7pt 0 5pt;padding-top:2pt}
+.filler .kicker{margin:0 0 1pt;font-size:6.2pt}
+.filler h4{font:700 8.6pt/1.15 "Playfair Display",serif;margin:0 0 2pt}
+.filler p,.filler li{font-size:8pt;line-height:1.32;margin:0 0 2pt}
+.filler ul,.filler ol{margin:1pt 0 2pt;padding-left:11pt}
+.filler p:last-child,.filler ul:last-child{margin-bottom:0}
+/* Out of flow, so measuring does not change the column breaks. White, but painted:
+   a collapsed mark is dropped from the PDF text layer. */
+.fill-mark{position:absolute;font-size:4pt;line-height:1;color:#fff;letter-spacing:0}
