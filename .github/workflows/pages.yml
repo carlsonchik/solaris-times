@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: pip install playwright pymupdf && python -m playwright install --with-deps chromium
       # issues/ is generated, except print-only filler pools (issues/<date>/fillers.json).
       - run: |
           mkdir -p /tmp/st-fillers
