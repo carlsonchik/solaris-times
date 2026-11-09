@@ -11,6 +11,8 @@ article,section{break-inside:auto}
 .lead,.feature,.grid,.note,.rubric{display:block;margin:0 0 8pt;padding:0;border:0;background:none}
 .rubric{border-top:1.2pt solid #111;padding-top:4pt}
 h2,h3{font-family:"Playfair Display",serif;line-height:1.1;margin:2pt 0 4pt;break-after:avoid}
+.weekly h2,.weekly h3,.weekly .kicker{break-after:avoid;page-break-after:avoid}
+.weekly p,.weekly li{orphans:3;widows:3}
 .lead h2{font-size:20pt}.feature h2{font-size:15pt}h3{font-size:12pt}
 .kicker{font:700 6.8pt sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#2a6f68;margin:4pt 0 1pt}
 p{margin:0 0 4pt;text-align:justify;hyphens:auto}
@@ -38,6 +40,11 @@ sup{font-size:6pt;color:#2a6f68}
 .weekly .feature{break-before:page}
 .weekly .lead h2{font-size:22pt}.weekly .feature h2{font-size:18pt}
 .weekly .part{break-before:page;display:block}
-.weekly .part::before{break-after:avoid}
-.weekly .part::before{content:attr(data-part);display:block;font:800 26pt/1 "Playfair Display",serif;border-bottom:3px double #111;padding-bottom:3pt;margin:0 0 6pt;color:#111}
 .weekly .part > .feature:first-child,.weekly .part > .feature:first-of-type{break-before:auto}
+/* Part title is a real element in the print HTML so it can travel with the
+   article opener. Chromium drops break-after on a ::before inside columns. */
+.weekly .part::before{content:none}
+.part-title{display:block;font:800 26pt/1 "Playfair Display",serif;border-bottom:3px double #111;padding-bottom:3pt;margin:8pt 0 6pt;color:#111;break-after:avoid;page-break-after:avoid}
+/* Heading, kicker, and the first lines of body stay in one column.
+   build.py wraps them; this is what the PDF engine actually honors. */
+.keep{break-inside:avoid;page-break-inside:avoid;-webkit-column-break-inside:avoid;display:block}

@@ -163,12 +163,96 @@ def _place_in_block(block):
 def place_print_figures(body):
     return _PRINT_BLOCK.sub(lambda m: _place_in_block(m.group(0)), body)
 
+_KEEP_BLOCK = re.compile(
+    r'<(article|section)\b[^>]*\bclass="(?:lead|feature|rubric)"[^>]*>.*?</\1>', re.S)
+_KEEP_HEAD = re.compile(r'<p class="(?:kicker|part-title)">.*?</p>|<h[23]\b[^>]*>.*?</h[23]>', re.S)
+_KEEP_FIG = re.compile(r'<figure\b[^>]*>.*?</figure>', re.S)
+_KEEP_PARA = re.compile(
+    r'<p\b(?![^>]*\bclass="(?:kicker|op|src|part-title)")[^>]*>.*?</p>|<ul\b[^>]*>.*?</ul>|<ol\b[^>]*>.*?</ol>',
+    re.S)
+
+def _plain_len(html_chunk):
+    text = re.sub(r"<[^>]+>", " ", html_chunk)
+    return len(re.sub(r"\s+", " ", text).strip())
+
+def _wrap_block(block):
+    """Keep a title with the first lines of the piece under it.
+
+    Chromium will leave a part title and kicker at the bottom of a column
+    when the headline no longer fits. break-inside:avoid on the whole
+    opener is what this PDF engine honors.
+    """
+    m = re.match(r'(<(?:article|section)\b[^>]*>)(.*)</(article|section)>\s*$', block, re.S)
+    if not m:
+        return block
+    open_tag, inner, close = m.group(1), m.group(2), m.group(3)
+    # The cover column under the contents is short. A lead photo locked
+    # to the headline is taller than that column, so the opener would
+    # skip the cover. The photo stays in the flow; the title does not.
+    skip_figures = "lead" in open_tag
+    out, pos = [], 0
+    while True:
+        found = _KEEP_HEAD.search(inner, pos)
+        if not found:
+            out.append(inner[pos:])
+            break
+        out.append(inner[pos:found.start()])
+        end = found.end()
+        while True:
+            ws = re.match(r"\s*", inner[end:])
+            nxt = end + ws.end()
+            nxt_head = _KEEP_HEAD.match(inner, nxt)
+            if nxt_head and nxt_head.start() == nxt:
+                end = nxt_head.end()
+                continue
+            nxt_fig = _KEEP_FIG.match(inner, nxt)
+            if nxt_fig and nxt_fig.start() == nxt and not skip_figures:
+                end = nxt_fig.end()
+                continue
+            break
+        ws = re.match(r"\s*", inner[end:])
+        nxt = end + ws.end()
+        div = re.match(r'<div class="(?:cols|text)">\s*', inner[nxt:])
+        para_at = nxt + div.end() if div else nxt
+        para = _KEEP_PARA.match(inner, para_at)
+        if not para or para.start() != para_at:
+            out.append("<div class=\"keep\">" + inner[found.start():end] + "</div>")
+            pos = end
+            continue
+        end2 = para.end()
+        if _plain_len(para.group(0)) < 180 and para.group(0).startswith("<p"):
+            ws2 = re.match(r"\s*", inner[end2:])
+            nxt2 = end2 + ws2.end()
+            para2 = re.match(r"<p\b[^>]*>.*?</p>", inner[nxt2:], re.S)
+            if para2 and para2.start() == 0 and "kicker" not in para2.group(0)[:80]:
+                end2 = nxt2 + para2.end()
+        heads = inner[found.start():nxt]
+        paras = inner[para_at:end2]
+        out.append("<div class=\"keep\">" + heads + paras + "</div>")
+        if div:
+            out.append(div.group(0))
+        pos = end2
+    return open_tag + "".join(out) + f"</{close}>"
+
+def keep_print_openings(body):
+    """Weekly print: a heading group moves with its opening paragraph."""
+    def part_title(m):
+        name = m.group(1)
+        return f'<section class="part" data-part="{name}">\n<p class="part-title">{name}</p>\n'
+    body = re.sub(r'<section class="part" data-part="([^"]+)">', part_title, body)
+    body = _KEEP_BLOCK.sub(lambda m: _wrap_block(m.group(0)), body)
+    return re.sub(
+        r'<p class="part-title">(.*?)</p>\s*(<article class="feature">\s*<div class="keep">)',
+        r'\2<p class="part-title">\1</p>',
+        body, flags=re.S)
+
 def print_html(it):
     body = it["body"].replace("{{ROOT}}", "../../")
     body = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', body, flags=re.S)  # print: links -> plain text, no sources
     weekly = is_weekly(it)
     if weekly:
         body = place_print_figures(body)
+        body = keep_print_openings(body)
     orbit = "еженедельная газета для одного читателя" if weekly else "ежедневная газета для одного читателя"
     cover = ""
     if weekly:
